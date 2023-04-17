@@ -83,50 +83,41 @@ class BinarySearchTree {
     const nodeToRemove = this._searchNode(data)
     if (!nodeToRemove) return
 
-    // if there is NO CHILDREN
-    if (!nodeToRemove.left && !nodeToRemove.right) {
-      if (nodeToRemove === this._rootNode) {
-        this._rootNode = null
+    removeNode.call(this, nodeToRemove)
+    function removeNode(nodeToRemove) {
+
+      // if there is NO CHILDREN
+      if (!nodeToRemove.left && !nodeToRemove.right) {
+        if (nodeToRemove === this._rootNode) {
+          this._rootNode = null
+          return
+        }
+        nodeToRemove.parent.node[nodeToRemove.parent.branch] = null
         return
       }
-      nodeToRemove.parent.node[nodeToRemove.parent.branch] = null
-    }
-    
-    // if THERE ARE CHILDREN
-    let randomDirection = (() => {
-      if (nodeToRemove.right && nodeToRemove.left) {
-        return 'left'
-        return Math.random() < 0.5 ? 'left' : 'right'
+
+      // if there is ONE CHILD
+      if (!nodeToRemove.right || !nodeToRemove.left) {
+        const direction = nodeToRemove.right ? 'right' : 'left'
+        nodeToRemove[direction].parent = nodeToRemove.parent
+        if (nodeToRemove === this._rootNode) {
+          this._rootNode = nodeToRemove[direction]
+        } else {
+          nodeToRemove.parent.node[nodeToRemove.parent.branch] = nodeToRemove[direction]
+        }
+        return
       }
-      if (!nodeToRemove.left) return 'right'
-      return 'left'
-    })()
+      
+      // if THERE ARE CHILDREN
+      let randomDirection = Math.random() < 0.5 ? 'left' : 'right'
+  
+      const newNode = this._searchInSubtree(
+        randomDirection === 'left' ? 'max' : 'min', 
+        nodeToRemove[randomDirection]
+      )
 
-    const newNode = this._searchInSubtree(
-      randomDirection === 'left' ? 'max' : 'min', 
-      nodeToRemove[randomDirection]
-    )
-
-    newNode.parent.node[newNode.parent.branch] = null
-
-    // const oppositeDirection = randomDirection === 'left' ? 'right' : 'left'
-    const orphan = newNode[randomDirection]
-    if (orphan) {
-      newNode.parent.node.attachNode(orphan)
-    }
-
-    newNode.left = newNode.right = null
-    for (const childNode of [nodeToRemove.left, nodeToRemove.right]) {
-      if (!childNode) continue
-      newNode.attachNode(childNode)
-    }
-
-    const parent = nodeToRemove.parent?.node
-    if (parent) {
-      parent[nodeToRemove.parent.branch] = null
-      parent.attachNode(newNode)
-    } else {
-      this._rootNode = newNode
+      nodeToRemove.data = newNode.data
+      removeNode.call(this, newNode)
     }
   }
   
@@ -164,31 +155,6 @@ class BinarySearchTree {
     return currNode
   }
 }
-
-// const tree = new BinarySearchTree()
-// tree.add(9);
-// tree.add(14);
-// tree.add(2);
-// tree.add(6);
-// tree.add(128);
-// tree.add(8);
-// tree.add(31);
-// tree.add(54);
-// tree.add(1);
-// debugger
-// tree.remove(14);
-// tree.remove(8);
-// tree.remove(9);
-
-// console.log(tree.has(14),
-// tree.has(8), 
-// tree.has(9), 
-// tree.has(2), 
-// tree.has(6), 
-// tree.has(128),
-// tree.has(31),
-// tree.has(54),
-// tree.has(1), )
 
 module.exports = {
   BinarySearchTree
